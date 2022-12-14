@@ -1,0 +1,6 @@
+v 1.0
+d Date: 14.12.2022
+d rdpolboot Bootstrapped CIs for the AMSE
+d Melle Albada, Vienna University of Economics and Business
+f rdpolboot.ado
+f rdpolboot.sthlp
