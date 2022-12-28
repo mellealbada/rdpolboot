@@ -6,7 +6,7 @@ program define rdpolbootplot, eclass
 	if "`accell_off'" == "" {
 		matrix m = ( e(ci_bca) \ e(b) )
 	}
-	else if "`accell_off'" == "" {
+	else if "`accell_off'" != "" {
 		matrix m = ( e(ci_bc) \ e(b) )
 	}
 	matrix m = m'
