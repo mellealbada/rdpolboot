@@ -4,3 +4,9 @@ d rdpolboot Bootstrapped CIs for the AMSE
 d Melle Albada, Vienna University of Economics and Business
 f rdpolboot.ado
 f rdpolboot.sthlp
+f rdpolbootplot.ado
+f lowestamsepol.ado
+f rdbwselect.ado
+f rdmse.ado
+f rdmse_full.ado
+f rdmsef.ado
