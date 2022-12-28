@@ -1,36 +1,89 @@
-putexcel set results, sheet(coefs) replace
-putexcel A1 = "polynomial"
-putexcel B1 = "estimate"
-putexcel C1 = "std_err"
-putexcel D1 = "pvalue"
-putexcel E1 = "ci_left"
-putexcel F1 = "ci_right"
-putexcel G1 = "bandwidth"
-putexcel H1 = "observations"
+* install sub commands
+	* rdmse
+	* rdbwselect
+* bootstrap options
+* create graph
+* warning if there are missing amses (and how many of each pol)
+* error list:
+	* error if minpol or maxpol are not set
+	* follow errors from sub commands? 
+* ereturn scalar command
+* new ado's for sub commands
+* clean bootstrap results table
 
-forvalues pol = 1/4 {
-	rdrobust left_school dist_from_cut, vce(cluster clustervar) p(`pol') covs($controls)
-	scalar est = e(tau_cl)
-	scalar stderr = e(se_tau_cl)
-	scalar pval = e(pv_rb)
-	scalar ci_l = e(ci_l_rb)
-	scalar ci_r = e(ci_r_rb)
-	scalar bw = e(h_l)
-	scalar obs = e(N_h_l) + e(N_h_r)
-	local row = `pol'+1
-	putexcel A`row' = `pol'
-	putexcel B`row' = est
-	putexcel C`row' = stderr
-	putexcel D`row' = pval
-	putexcel E`row' = ci_l
-	putexcel F`row' = ci_r
-	putexcel G`row' = bw
-	putexcel H`row' = obs
-}
+set seed 5234234
+
+cd "D:\RDData\RDHonest\Meyersson"
+use regdata0.dta, clear
+gen x = rnormal()
+// drop if x > -1.3
 
 program drop _all
+
+program define lowestamsepol, eclass
+	syntax anything [, c(real 0) fuzzy(string) covs(string) vce(string) kernel(string)] minpol(real) maxpol(real)
+	tokenize "`anything'"
+	
+	local y `1'
+	local x `2'
+	
+	scalar lowestamse = .
+	scalar lowestpol = .
+
+	if "`fuzzy'"=="" {
+		forvalues pol = `minpol'/`maxpol' {
+			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel')
+			local hbw = e(h_mserd)
+			local bbw = e(b_mserd)
+			qui rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c')
+		
+			scalar amse_p`pol' = e(amse_cl)
+			di "AMSE for polynomial order `pol' is " amse_p`pol'
+		
+			if e(amse_cl) < lowestamse {
+				scalar lowestamse = e(amse_cl)
+				scalar lowestpol = `pol'
+			}
+		}
+	}
+	
+	if "`fuzzy'"!="" {
+		forvalues pol = `minpol'/`maxpol' {
+			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel')
+			local hbw = e(h_mserd)
+			local bbw = e(b_mserd)
+			qui rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c')
+		
+			scalar amse_p`pol' = e(amse_F_cl)
+			di "AMSE for polynomial order `pol' is " amse_p`pol'
+		
+			if e(amse_cl) < lowestamse {
+				scalar lowestamse = e(amse_F_cl)
+				scalar lowestpol = `pol'
+			}
+		}
+	}
+	
+	ereturn clear
+	
+	ereturn scalar lowest_amse = lowestamse
+	ereturn scalar lowest_pol = lowestpol
+	
+	local lowestpol = lowestpol
+	local elist // initialize elist
+
+	forvalues pol = `minpol'/`maxpol' {
+		if `pol' != `lowestpol' {
+			local elist `elist' e(amse`lowestpol'`pol') // add scalar to elist
+		}
+	}
+
+	ereturn local elist "`elist'"
+
+end
+
 program define rdmse_full, eclass
-	syntax anything [if] [in] [, c(real 0) covs(string) vce(string) fuzzy(string)]
+	syntax anything [if] [in] [, c(real 0) fuzzy(string) covs(string) vce(string) kernel(string) scalepar(real 1) deriv(real 0)] minpol(real) maxpol(real) lowestpol(real)
 	
 	marksample touse
 	
@@ -45,8 +98,8 @@ program define rdmse_full, eclass
 	scalar N = r(N)
 	
 	if "`fuzzy'"=="" {
-		forvalues pol = 1/4 {
-			rdbwselect `y' `x', p(`pol') covs(`covs') vce(`vce') c(`c')
+		forvalues pol = 1/`maxpol' {
+			rdbwselect `y' `x', p(`pol') covs(`covs') vce(`vce') c(`c') kernel(`kernel')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
 			rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c')
@@ -56,7 +109,7 @@ program define rdmse_full, eclass
 	}
 	
 	if "`fuzzy'"!="" {
-		forvalues pol = 1/4 {
+		forvalues pol = 1/`maxpol' {
 			rdbwselect `y' `x', p(`pol') covs(`covs') vce(`vce') c(`c') fuzzy(`fuzzy')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
@@ -68,38 +121,93 @@ program define rdmse_full, eclass
 	
 	
 	ereturn clear
-	
-	ereturn scalar amse12 = amse1 - amse2
-	ereturn scalar amse13 = amse1 - amse3
-	ereturn scalar amse14 = amse1 - amse4
-	ereturn scalar amse23 = amse2 - amse3
-	ereturn scalar amse24 = amse2 - amse4
-	ereturn scalar amse34 = amse3 - amse4
-	
+
+* return amse differences of polynomial pairs and create scalar list for bootstrap procedure
+
+	forvalues pol = `minpol'/`maxpol' {
+		if `pol' != `lowestpol' {
+			ereturn scalar amse`lowestpol'`pol'= amse`lowestpol' - amse`pol'
+		}
+	}
+
 	ereturn scalar N = N
 	
 	restore
+	
 end
 
-bootstrap e(amse12) e(amse13) e(amse14) e(amse23) e(amse24) e(amse34), reps(15000) bca jackknifeopts(n(e(N))) saving(lindo_bs, replace): rdmse_full left_school dist_from_cut, vce(cluster clustervar) covs($controls)
-estat bootstrap
+program define rdpolbootplot, eclass
+	syntax anything [, accell_off]
+	
+	preserve 
+	
+	if "`accell_off'" == "" {
+		matrix m = ( e(ci_bca) \ e(b) )
+	}
+	else if "`accell_off'" == "" {
+		matrix m = ( e(ci_bc) \ e(b) )
+	}
+	matrix m = m'
+	svmat m
+	
+	tokenize "`anything'"
+	local minpol `1'
+	local maxpol `2'
+	local lowestpol `3'
 
-putexcel set results, sheet(cis) modify
+	gen rdpolbootid = _n
+	
+	local polc = 1
+	forvalues pol = `minpol'/`maxpol' {
+		if `pol' != `lowestpol' {
+			label def rdpolbootid `polc' "p`lowestpol'p`pol'", modify
+			local ++polc
+		}
+	}	
 
-putexcel A1 = "original"
-matrix coef = e(b)'
-matrix ci = e(ci_bca)'
-putexcel A2 = matrix(coef)
-putexcel B1 = matrix(ci), colnames
+	label values rdpolbootid rdpolbootid
 
-putexcel set results, sheet(output) modify
-putexcel A1 = emat
+	local maxin = `maxpol'-`minpol'
+	numlist "1/`maxin'"
+	local maxinlist `r(numlist)'
+	
+	twoway (rcap m1 m2 rdpolbootid in 1/`maxin', horizontal xline(0)) (scatter rdpolbootid m3 in 1/`maxin'), ylabel(`maxinlist', valuelabel) legend(off) ytitle("Polynomial Order Pair") xtitle("Difference in AMSE")
 
+	restore
+	
+end
 
-/*
-// rdmse_full hischshr1520f iwm94
+program define rdpolboot, eclass
+	syntax anything [if] [in] [, accell_off plot c(real 0) fuzzy(string) covs(string) vce(string) kernel(string) scalepar(real 1) deriv(real 0)] minpol(real) maxpol(real) reps(real)
+	
+	marksample touse
+	
+	preserve
+	qui keep if `touse'
+	
+	tokenize "`anything'"
+	local y `1'
+	local x `2'
+	
+	lowestamsepol `y' `x', minpol(`minpol') maxpol(`maxpol')
+	local elist = e(elist)
+	local lowestpol = e(lowest_pol)
+	
+	if "`accell_off'" == "" {
+		bootstrap `elist', notable noheader nolegend nowarn reps(`reps') bca jackknifeopts(n(e(N))): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol')
+		estat bootstrap, bca
+	}
+	else if "`accell_off'" != "" {
+		bootstrap `elist', notable noheader nolegend nowarn reps(`reps'): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol')		
+		estat bootstrap
+	}
+	
+	if `"`plot'"' != "" {
+	 	rdpolbootplot `minpol' `maxpol' `lowestpol', `accell_off'
+	}
+		
+	restore
+	
+end
 
-local hbw = e(h_l)
-local bbw = e(b_l)
-rdmses leader_next winmargin_loc if winmargin_loc!=0 & (electionmargin_loc==-1|electionmargin_loc==0), p(`pol') h(`hbw') b(`bbw')
-*/
+rdpolboot hischshr1520f iwm94, minpol(1) maxpol(4) reps(500) plot accell_off
