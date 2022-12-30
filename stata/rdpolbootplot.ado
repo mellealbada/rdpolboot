@@ -13,7 +13,7 @@ program define rdpolbootplot, eclass
 	svmat m
 	
 	tempvar inc
-	gen `inc' = m2<0
+	gen `inc' = m2>=0
 	
 	tokenize "`anything'"
 	local minpol `1'
@@ -36,7 +36,7 @@ program define rdpolbootplot, eclass
 	numlist "1/`maxin'"
 	local maxinlist `r(numlist)'
 	
-	twoway (rcap m1 m2 rdpolbootid in 1/`maxin', horizontal xline(0)) (scatter rdpolbootid m3 in 1/`maxin' if `inc'==1, mcolor(red)) (scatter rdpolbootid m3 in 1/`maxin' if `inc'==0, mcolor(black)), ylabel(`maxinlist', valuelabel) xscale(range(. 0)) xlabel(#6) legend(off) ytitle("Polynomial Order Pair") xtitle("Difference in AMSE")
+	twoway (rcap m1 m2 rdpolbootid in 1/`maxin', horizontal xline(0)) (scatter rdpolbootid m3 in 1/`maxin' if `inc'==1, mcolor(maroon)) (scatter rdpolbootid m3 in 1/`maxin' if `inc'==0, mcolor(black)), ylabel(`maxinlist', valuelabel) xscale(range(. 0)) xlabel(#6) legend(off) ytitle("Polynomial Order Pair") xtitle("Difference in AMSE")
 
 	restore
 	
