@@ -1,5 +1,12 @@
 {smcl}
-{* *! version 2.0 10JAN2021}{...}
+{* *! version 1.0 10JAN2023}{...}
+{viewerjumpto "Syntax" "rdpolboot##syntax"}{...}
+{viewerjumpto "Description" "rdpolboot##description"}{...}
+{viewerjumpto "Options" "rdpolboot##options"}{...}
+{viewerjumpto "Examples" "rdpolboot##examples"}{...}
+{viewerjumpto "Stored results" "rdpolboot##stored_results"}{...}
+{viewerjumpto "References" "rdpolboot##references"}{...}
+{viewerjumpto "Author" "rdpolboot##author"}{...}
 
 {title:Title}
 
@@ -8,82 +15,74 @@
 {marker syntax}{...}
 {title:Syntax}
 
-{p 4 15 2}{cmd:rdmse} {it:depvar} {it:runvar} {ifin} 
+{p 4 15 2}{cmd:rdpolboot} {it:depvar} {it:runvar} {ifin} 
 [{cmd:,} 
+{cmd:minpol(}{it:#}{cmd:)}
+{cmd:maxpol(}{it:#}{cmd:)} 
+{cmd:accel_off}
+{cmd:reps(}{it:#}{cmd:)} 
 {cmd:c(}{it:#}{cmd:)} 
-{cmd:p(}{it:#}{cmd:)} 
+{cmd:fuzzy(}{it:fuzzyvar [sharpbw]}{cmd:)}
 {cmd:deriv(}{it:#}{cmd:)}
-{cmd:fuzzy(}{it:fuzzyvar}{cmd:)}
+{cmd:covs(}{it:covars}{cmd:)}
 {cmd:kernel(}{it:kernelfn}{cmd:)}
-{cmd:h(}{it:#}{cmd:)} 
-{cmd:b(}{it:#}{cmd:)}
-{cmd:scalepar(}{it:#}{cmd:)}
-{cmd:twosided}
-{cmd:pl(}{it:#}{cmd:)}
-{cmd:pr(}{it:#}{cmd:)}
-{cmd:hl(}{it:#}{cmd:)} 
-{cmd:hr(}{it:#}{cmd:)} 
-{cmd:bl(}{it:#}{cmd:)} 
-{cmd:br(}{it:#}{cmd:)} 
-]{p_end}
-
-{p 4 15 2}{cmd:rdmse_cct2014} {it:depvar} {it:runvar} {ifin} 
-[{cmd:,} 
-{cmd:c(}{it:#}{cmd:)} 
-{cmd:p(}{it:#}{cmd:)} 
-{cmd:deriv(}{it:#}{cmd:)}
-{cmd:fuzzy(}{it:fuzzyvar}{cmd:)}
-{cmd:kernel(}{it:kernelfn}{cmd:)}
-{cmd:h(}{it:#}{cmd:)} 
-{cmd:b(}{it:#}{cmd:)}
-{cmd:scalepar(}{it:#}{cmd:)}
-]{p_end}
+{cmd:bwselect(}{it:bwmethod}{cmd:)}
+{cmd:scaleregul(}{it:#}{cmd:)}
+{cmd:vce(}{it:vcetype [vceopt1 vceopt2]}{cmd:)}]
 
 {synoptset 28 tabbed}{...}
-
-{marker description}{...}
-{title:Description}
-
-{p 4 8 8}{cmd:rdmse} computes the (asymptotic) mean squared error (MSE) of a local polynomial RD/RK estimator as proposed in Card, Lee, Pei, Weber (2018, 2020). 
-It displays and returns the estimated MSE for the conventional estimator and its bias corrected counterpart as defined in Calonico, Cattaneo, Titiunik (2014a).{p_end}
-
-{p 4 8 8}{cmd:rdmse_cct2014} computes the (A)MSE for a conventional RD/RK estimator by gathering the relevant quantities calculated by the 2014 implementation of {bf}rdrobust{sf}, {bf}rdrobust_2014{sf} by Calonico, Cattaneo and Titiunik. 
-It does not estimate the (A)MSE for the bias corrected estimator because some of the quantities required for the calculation are not computed by {bf}rdrobust_2014{sf} (nor {bf}rdrobust{sf}). 
-For the conventional estimator, {bf}rdmse_cct2014{sf} and {bf}rdmse {sf}implement variance estimation slightly differently. 
-Both commands employ a nearest neighbor estimator and set the number of neighbors to three. 
-However, in the event of a tie {bf}rdmse_cct2014{sf} selects all of the closest neighbors following {bf}rdrobust_2014{sf}. 
-In contrast, {bf}rdmse{sf} randomly selects three neighbors and speeds up the computation in doing so.{p_end}
 
 {marker options}{...}
 {title:Options}
 
-{p 4 8}{cmd:c(}{it:#}{cmd:)} specifies the RD cutoff in {it:runvar}.
-Default is {cmd:c(0)}{sf}.
+{dlgtab:Estimand}
 
-{p 4 8}{cmd:p(}{it:#}{cmd:)} specifies the order of the local polynomial. 
-Default is {cmd:p(1)} (local linear regression). Consistent with the implementation in {cmd:rdrobust}, the maximum value allowed for {cmd:p()} is 8. A local polynomial of order ({it:p}+1) is used to estimate the bias of the estimator.
+{p 4 8}{cmd:c(}{it:#}{cmd:)} specifies the RD cutoff for {it:indepvar}.
+Default is {cmd:c(0)}.{p_end}
+
+{p 4 8}{cmd:fuzzy(}{it:fuzzyvar [sharpbw]}{cmd:)} specifies the treatment status variable used to implement fuzzy RD estimation (or Fuzzy Kink RD if {cmd:deriv(1)} is also specified).
+Default is Sharp RD design and hence this option is not used.
+If the option {it:sharpbw} is set, the fuzzy RD estimation is performed using a bandwidth selection procedure for the sharp RD model. This option is automatically selected if there is perfect compliance at either side of the threshold.
+{p_end}
 
 {p 4 8}{cmd:deriv(}{it:#}{cmd:)} specifies the order of the derivative of the regression functions to be estimated.
-Default is {cmd:deriv(0)} (RD estimator). Use {cmd:deriv(1)} for an RK estimator.
+Default is {cmd:deriv(0)} (for Sharp RD, or for Fuzzy RD if {cmd:fuzzy(.)} is also specified). Setting {cmd:deriv(1)} results in estimation of a Kink RD design (up to scale), or Fuzzy Kink RD if {cmd:fuzzy(.)} is also specified.{p_end}
 
-{p 4 8}{cmd:fuzzy(}{it:fuzzyvar}{cmd:)} specifies the treatment variable in a fuzzy RD/RK design. Leave the option unspecified if the underlying design is sharp.
+{dlgtab:Local Polynomial Regression}
 
-{p 4 8}{cmd:kernel(}{it:kernelfn}{cmd:)} specifies the kernel function used to construct the local polynomial estimator. Options are {cmd:triangular} or {cmd:uniform}{sf}.
+{p 4 8}{cmd:minpol(}{it:#}{cmd:)} specifies the lowest polynomial order to consider for estimating bootstrapped confidence intervals.
+Default is {cmd:minpol(1)}{p_end}
 
-{p 4 8}{cmd:h(}{it:#}{cmd:)} specifies the main bandwidth used to construct the RD/RK estimator. The user has to specify this bandwidth.
+{p 4 8}{cmd:maxpol(}{it:#}{cmd:)} specifies the highest polynomial order to consider for estimating bootstrapped confidence intervals.
+Default is {cmd:maxpol(4)}{p_end}
 
-{p 4 8}{cmd:b(}{it:#}{cmd:)} specifies the bias bandwidth for estimating the bias of the RD/RK estimator. The user has to specify this bandwidth.
+{p 4 8}{cmd:covs(}{it:covars}{cmd:)} specifies additional covariates to be used for estimation and inference.{p_end}
 
-{p 4 8}{cmd:scalepar(}{it:#}{cmd:)} specifies a scaling factor for the RD/RK parameter of interest. The same option is available in {cmd:rdrobust} as per Calonico, Cattaneo, Titiunik (2014b).
-Default is {cmd:scalepar(1)}.
+{p 4 8}{cmd:kernel(}{it:kernelfn}{cmd:)} specifies the kernel function used to construct the local-polynomial estimator(s). Options are: {opt tri:angular}, {opt epa:nechnikov}, and {opt uni:form}.
+Default is {cmd:kernel(triangular)}.{p_end}
 
-{p 4 8}{cmd:twosided}. If specified, the program looks for separate polynomial orders and bandwidths on two sides of the threshold, which need to be specified in {cmd:pl()}, {cmd:pr()}, {cmd:hl()}, {cmd:hr()}, {cmd:bl()}, and {cmd:br()}. The program returns the estimated mean squared error for the conventional and bias-corrected estimator of the left and right derivatives of order {it:deriv}, respectively. The two-sided bandwidths can be obtained by specifing the {cmd:bwselect(}{it:msetwo}{cmd:)} option in {cmd:rdrobust}. The twosided option can only be used in a sharp RD/RK design (more in Additional Notes below). See Calonico, Cattaneo, Farrell, Titiunik (2017, 2019) for details.
+{p 4 8}{cmd:scaleregul(}{it:#}{cmd:)} specifies scaling factor for the regularization term added to the denominator of the bandwidth selectors. Setting {cmd:scaleregul(0)} removes the regularization term from the bandwidth selectors.
+Default is {cmd:scaleregul(1)}.{p_end}
 
-{p 4 8}{cmd:pl(}{it:#}{cmd:)} and {cmd:pr(}{it:#}{cmd:)} specify the orders of the local polynomials on the left and right sides of the threshold, respectively. Default is {cmd:pl(1)} and {cmd:pr(1)} (local linear regressions). Consistent with the implementation in {cmd:rdrobust}, the maximum value allowed is 8 for both orders. Local polynomials of order ({it:pl}+1) and ({it:pr}+1) are used to estimate the biases of the left- and right-side estimators.
+{dlgtab:Bootstrap Settings}
 
-{p 4 8}{cmd:hl(}{it:#}{cmd:)} and {cmd:hr(}{it:#}{cmd:)} specify the main bandwidths used to construct the estimators of the left and right derivatives of order {it:deriv}. The user has to supply these bandwidths if the option {cmd:twoside} is specified.
+{p 4 8}{cmd:reps(}{it:#}{cmd:)} specifies the number of bootstrap repetitions.
+Default is {cmd:reps(15000)}{p_end}
 
-{p 4 8}{cmd:bl(}{it:#}{cmd:)} and {cmd:br(}{it:#}{cmd:)} specify the bias bandwidths used to estimate the biases of the left- and right-side estimators. The user has to supply these bandwidths if the option {cmd:twoside} is specified.
+{p 4 8}{cmd:accel_off} if specified, {cmd:rdpolboot} skips estimation of the acceleration factor and reports BC confidence intervals instead of BCa confidence intervals. This saves considerable time in data sets with many observations.{p_end}
+
+{dlgtab:Variance-Covariance Estimation}
+
+{p 4 8}{cmd:vce(}{it:vcetype [vceopt1 vceopt2]}{cmd:)} specifies the procedure used to compute the variance-covariance matrix estimator.
+Options are:{p_end}
+{p 8 12}{cmd:vce(nn }{it:[nnmatch]}{cmd:)} for heteroskedasticity-robust nearest neighbor variance estimator with {it:nnmatch} indicating the minimum number of neighbors to be used.{p_end}
+{p 8 12}{cmd:vce(hc0)} for heteroskedasticity-robust plug-in residuals variance estimator without weights.{p_end}
+{p 8 12}{cmd:vce(hc1)} for heteroskedasticity-robust plug-in residuals variance estimator with {it:hc1} weights.{p_end}
+{p 8 12}{cmd:vce(hc2)} for heteroskedasticity-robust plug-in residuals variance estimator with {it:hc2} weights.{p_end}
+{p 8 12}{cmd:vce(hc3)} for heteroskedasticity-robust plug-in residuals variance estimator with {it:hc3} weights.{p_end}
+{p 8 12}{cmd:vce(nncluster }{it:clustervar [nnmatch]}{cmd:)} for cluster-robust nearest neighbor variance estimation using with {it:clustervar} indicating the cluster ID variable and {it: nnmatch} matches indicating the minimum number of neighbors to be used.{p_end}
+{p 8 12}{cmd:vce(cluster }{it:clustervar}{cmd:)} for cluster-robust plug-in residuals variance estimation with degrees-of-freedom weights and {it:clustervar} indicating the cluster ID variable.{p_end}
+{p 8 12}Default is {cmd:vce(nn 3)}.{p_end}
 
     {hline}
 
@@ -126,34 +125,30 @@ Default is {cmd:scalepar(1)}.
 {p 4 8}Estimate the MSE of the fuzzy local linear RK estimator{p_end}
 {p 8 12}{cmd:. rdmse Y x, c(0) fuzzy(T) deriv(1) p(1) h(0.5) b(1.2) kernel(uniform)}{p_end}
 
-{marker saved_results}{...}
-{title:Saved results}
+{marker stored_results}{...}
+{title:Stored Results}
 
-{p 4 8}If {cmd:fuzzy()} and {cmd:twosided} are unspecified, {cmd:rdmse} saves the scalars:{p_end}
-{synopt:{cmd:e(amse_cl)}}estimated (asymptotic) MSE of the conventional sharp estimator{p_end}
-{synopt:{cmd:e(amse_bc)}}estimated (asymptotic) MSE of the bias-corrected sharp estimator{p_end} 
+{p 4 8}{cmd:rdbwselect} stores the following in {cmd:e()}:
 
-{p 4 8}If {cmd:twosided} is specified, {cmd:rdmse} saves the scalars:{p_end}
-{synopt:{cmd:e(amse_l_cl)}}estimated (asymptotic) MSE of the conventional left-side estimator{p_end}
-{synopt:{cmd:e(amse_l_bc)}}estimated (asymptotic) MSE of the bias-corrected left-side estimator{p_end}
-{synopt:{cmd:e(amse_r_cl)}}estimated (asymptotic) MSE of the conventional right-side estimator{p_end}
-{synopt:{cmd:e(amse_r_bc)}}estimated (asymptotic) MSE of the bias-corrected right-side estimator{p_end} 
-	
-{p 4 8}If {cmd:fuzzy()} is specified, {cmd:rdmse} saves the scalars:{p_end}
-{synopt:{cmd:e(amse_F_cl)}}estimated (asymptotic) MSE of the conventional fuzzy estimator{p_end}
-{synopt:{cmd:e(amse_F_bc)}}estimated (asymptotic) MSE of the bias-corrected fuzzy estimator{p_end}
+{synoptset 20 tabbed}{...}
+{p2col 5 20 24 2: Scalars}{p_end}
+{synopt:{cmd:e(N)}}total number of observations{p_end}
+{synopt:{cmd:e(minpol)}}lowest polynomial order considered for estimating bootstrapped confidence intervals{p_end}
+{synopt:{cmd:e(maxpol)}}highest polynomial order considered for estimating bootstrapped confidence intervals{p_end}
+{synopt:{cmd:e(lowestpol)}}polynomial order with the lowest AMSE (the base polynomial order).{p_end}
+
+{p2col 5 20 24 2: Matrices}{p_end}
+{synopt:{cmd:e(amses)}}AMSE value corresponding to each polynomial order.{p_end}
+
+{p2col 5 20 24 2: Macros}{p_end}
+{synopt:{cmd:e(included)}}list of all polynomial order to be included in the analysis according to the bootstrapped confidence intervals.{p_end}
+
 
 {p 4 4}Since {cmd:rdmse_cct2014} only estimates the (asymptotic) MSE of the conventional estimator, it returns {cmd:e(amse_cl)} in the sharp case and {cmd:e(amse_F_cl)} in the fuzzy case.{p_end}
 
-{title:Additional Notes}
-
-{p 4 4}{cmd:altrdbwselect} is an alternative implementation of the CCT bandwidth selector from Calonico, Cattaneo, Titiunik (2014a). 
-As with {cmd:rdmse}, it speeds up the computation in Calonico, Cattaneo, Titiunik (2014b) by adopting a random tie breaking scheme in variance estimation. The syntax is the same as {cmd:rdbwselect} in Calonico, Cattaneo, Titiunik (2014b).{p_end}
-
-{p 4 4}In the current implementation of {cmd:rdrobust}, the two-sided bandwidths in a fuzzy design are optimal for estimating the left and right derivatives of order {it:deriv} in the the reduced-form relationship between the outcome variable and the running variable. In this spirit, we do not allow {cmd:twosided} to be specified in conjunction with {cmd:fuzzy()}, and the user should apply the {cmd:twosided} option to the reduced-form only by treating it as a sharp design.{p_end}
-
     {hline}
-	
+
+{marker references}{...}
 {title:References}
 
 {p 4 8}Calonico, S., M. D. Cattaneo, and R. Titiunik. 2014a. Robust Nonparametric Confidence Intervals for Regression Discontinuity Designs. {it:Econometrica} 82(6): 2295-2326.
@@ -177,10 +172,11 @@ As with {cmd:rdmse}, it speeds up the computation in Calonico, Cattaneo, Titiuni
 {p 4 8}Card, D., D. S. Lee, Z. Pei, and A. Weber. 2020. NBER Working Paper #622.
 {browse "https://www.nber.org/papers/w27424"}.
 
+{marker author}{...}
 {title:Author}
 
-{p 4 8}Zhuan Pei, Cornell University, Ithaca, NY.
-{browse "mailto:zhuan.pei@cornell.edu":zhuan.pei@cornell.edu}.
+{p 4 8}Melle Albada, Vienna University of Economics and Business.
+{browse "mailto:melle.albada@wu.ac.at":melle.albada@wu.ac.at}.
 
 
 

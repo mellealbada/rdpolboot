@@ -1,12 +1,12 @@
 program define rdpolbootplot, eclass
-	syntax anything [, accell_off]
+	syntax anything [, accel_off]
 	
 	preserve 
 	
-	if "`accell_off'" == "" {
+	if "`accel_off'" == "" {
 		matrix m = ( e(ci_bca) \ e(b) )
 	}
-	else if "`accell_off'" != "" {
+	else if "`accel_off'" != "" {
 		matrix m = ( e(ci_bc) \ e(b) )
 	}
 	matrix m = m'
@@ -33,7 +33,7 @@ program define rdpolbootplot, eclass
 	numlist "1/`maxin'"
 	local maxinlist `r(numlist)'
 	
-	twoway (rcap m1 m2 rdpolbootid in 1/`maxin', horizontal xline(0)) (scatter rdpolbootid m3 in 1/`maxin'), ylabel(`maxinlist', valuelabel) legend(off) ytitle("Polynomial Order Pair") xtitle("Difference in AMSE")
+	twoway (rcap m1 m2 rdpolbootid in 1/`maxin', horizontal xline(0)) (scatter rdpolbootid m3 in 1/`maxin'), ylabel(`maxinlist', valuelabel) xscale(range(. 0)) xlabel(#6) legend(off) ytitle("Polynomial Order Pair") xtitle("Difference in AMSE")
 
 	restore
 	

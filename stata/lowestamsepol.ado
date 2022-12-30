@@ -1,6 +1,6 @@
 capture program drop lowestamsepol
 program define lowestamsepol, eclass
-	syntax anything [, c(real 0) fuzzy(string) covs(string) vce(string) kernel(string)] minpol(real) maxpol(real)
+	syntax anything [, c(real 0) fuzzy(string) covs(string) vce(string) kernel(string) scaleregul(real 1) deriv(real 0)] minpol(real) maxpol(real)
 	tokenize "`anything'"
 	
 	local y `1'
@@ -8,16 +8,21 @@ program define lowestamsepol, eclass
 	
 	scalar lowestamse = .
 	scalar lowestpol = .
-
+	
 	if "`fuzzy'"=="" {
 		forvalues pol = `minpol'/`maxpol' {
-			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel')
+			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
 			qui rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c')
 		
 			scalar amse_p`pol' = e(amse_cl)
 			di "AMSE for polynomial order `pol' is " amse_p`pol'
+			
+			if `pol'==`minpol' {
+				matrix amses = `pol', e(amse_cl)
+			}
+			else matrix amses = amses \ `pol', e(amse_cl)
 		
 			if e(amse_cl) < lowestamse {
 				scalar lowestamse = e(amse_cl)
@@ -28,13 +33,18 @@ program define lowestamsepol, eclass
 	
 	if "`fuzzy'"!="" {
 		forvalues pol = `minpol'/`maxpol' {
-			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel')
+			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
-			qui rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c')
+			qui rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') fuzzy(`fuzzy')
 		
 			scalar amse_p`pol' = e(amse_F_cl)
 			di "AMSE for polynomial order `pol' is " amse_p`pol'
+			
+			if `pol'==`minpol' {
+				matrix amses = `pol', e(amse_F_cl)
+			}
+			else matrix amses = amses \ `pol', e(amse_F_cl)
 		
 			if e(amse_cl) < lowestamse {
 				scalar lowestamse = e(amse_F_cl)
@@ -43,6 +53,8 @@ program define lowestamsepol, eclass
 		}
 	}
 	
+	matrix colnames amses = polynomial amse
+
 	ereturn clear
 	
 	ereturn scalar lowest_amse = lowestamse
