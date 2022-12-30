@@ -143,9 +143,6 @@ Options are:{p_end}
 {p2col 5 20 24 2: Macros}{p_end}
 {synopt:{cmd:e(included)}}list of all polynomial order to be included in the analysis according to the bootstrapped confidence intervals.{p_end}
 
-
-{p 4 4}Since {cmd:rdmse_cct2014} only estimates the (asymptotic) MSE of the conventional estimator, it returns {cmd:e(amse_cl)} in the sharp case and {cmd:e(amse_F_cl)} in the fuzzy case.{p_end}
-
     {hline}
 
 {marker references}{...}

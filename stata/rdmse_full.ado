@@ -11,6 +11,9 @@ program define rdmse_full, eclass
 	local y `1'
 	local x `2'
 	
+	qui count
+	scalar N = r(N)
+	
 	if "`fuzzy'"=="" {
 		forvalues pol = 1/`maxpol' {
 			rdbwselect `y' `x', p(`pol') covs(`covs') vce(`vce') c(`c') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
@@ -42,5 +45,7 @@ program define rdmse_full, eclass
 	}
 	
 	restore
+	
+	ereturn scalar N = N
 	
 end
