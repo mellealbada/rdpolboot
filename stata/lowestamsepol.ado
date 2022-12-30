@@ -46,7 +46,7 @@ program define lowestamsepol, eclass
 			}
 			else matrix amses = amses \ `pol', e(amse_F_cl)
 		
-			if e(amse_cl) < lowestamse {
+			if e(amse_F_cl) < lowestamse {
 				scalar lowestamse = e(amse_F_cl)
 				scalar lowestpol = `pol'
 			}
