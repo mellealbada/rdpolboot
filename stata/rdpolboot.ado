@@ -18,12 +18,12 @@ program define rdpolboot, eclass
 	local elist = e(elist)
 	local lowestpol = e(lowest_pol)
 	
-	if "`accell_off'" == "" {
+	if "`accel_off'" == "" {
 		bootstrap `elist', notable noheader nolegend nowarn reps(`reps') bca jackknifeopts(n(e(N))): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol') fuzzy(`fuzzy') covs(`covs') vce(`vce') scaleregul(`scaleregul') deriv(`deriv')
 		estat bootstrap, bca
 		matrix upperbound = e(ci_bca)
 	}
-	else if "`accell_off'" != "" {
+	else if "`accel_off'" != "" {
 		bootstrap `elist', notable noheader nolegend nowarn reps(`reps'): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol') fuzzy(`fuzzy') covs(`covs') vce(`vce') scaleregul(`scaleregul') deriv(`deriv')		
 		estat bootstrap
 		matrix upperbound = e(ci_bc)
