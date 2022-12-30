@@ -49,9 +49,9 @@ program define rdpolboot, eclass
 	
 	ereturn clear
 	ereturn scalar N = `N'
-	ereturn scalar minpol `minpol'
-	ereturn scalar maxpol `maxpol'
-	ereturn scalar lowestpol `lowestpol'
+	ereturn scalar minpol = `minpol'
+	ereturn scalar maxpol = `maxpol'
+	ereturn scalar lowestpol = `lowestpol'
 	
 	ereturn matrix amses = amses
 	
