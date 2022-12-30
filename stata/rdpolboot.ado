@@ -14,7 +14,7 @@ program define rdpolboot, eclass
 	qui count
 	local N = r(N)
 	
-	lowestamsepol `y' `x', minpol(`minpol') maxpol(`maxpol') covs(`covs') vce(`vce') p(`pol') c(`c') covs(`covs') vce(`vce') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
+	lowestamsepol `y' `x', minpol(`minpol') maxpol(`maxpol') covs(`covs') vce(`vce') c(`c') covs(`covs') vce(`vce') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 	local elist = e(elist)
 	local lowestpol = e(lowest_pol)
 	
