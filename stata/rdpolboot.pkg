@@ -7,6 +7,6 @@ f rdpolboot.sthlp
 f rdpolbootplot.ado
 f lowestamsepol.ado
 f rdbwselect.ado
-f rdmse.ado
+f rdmses.ado
 f rdmse_full.ado
 f rdmsef.ado
