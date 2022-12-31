@@ -43,7 +43,7 @@
 
 {dlgtab:Estimand}
 
-{p 4 8}{cmd:c(}{it:#}{cmd:)} specifies the RD cutoff for {it:indepvar}.
+{p 4 8}{cmd:c(}{it:#}{cmd:)} specifies the RD cutoff for {it:runvar}.
 Default is {cmd:c(0)}.{p_end}
 
 {p 4 8}{cmd:fuzzy(}{it:fuzzyvar [sharpbw]}{cmd:)} specifies the treatment status variable used to implement fuzzy RD estimation (or Fuzzy Kink RD if {cmd:deriv(1)} is also specified).
@@ -114,7 +114,7 @@ Options are:{p_end}
 {p 12 12}{cmd:. rdpolboot y x, plot}{p_end}
 
 {p 8 8}Estimation for sharp RD designs with covariates and a cluster variable{p_end}
-{p 12 12}{cmd:. rdpolboot y x, covs({it:covars}) vce(cluster {it:clustervar}}{p_end}
+{p 12 12}{cmd:. rdpolboot y x, covs({it:covars}) vce(cluster {it:clustervar})}{p_end}
 
 {marker stored_results}{...}
 {title:Stored Results}
