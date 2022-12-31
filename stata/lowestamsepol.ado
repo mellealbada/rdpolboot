@@ -14,7 +14,7 @@ program define lowestamsepol, eclass
 			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
-			qui rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c')
+			qui rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') kernel(`kernel')
 		
 			scalar amse_p`pol' = e(amse_cl)
 			di "AMSE for polynomial order `pol' is " amse_p`pol'
@@ -36,7 +36,7 @@ program define lowestamsepol, eclass
 			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
-			qui rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') fuzzy(`fuzzy')
+			qui rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') fuzzy(`fuzzy') kernel(`kernel')
 		
 			scalar amse_p`pol' = e(amse_F_cl)
 			di "AMSE for polynomial order `pol' is " amse_p`pol'

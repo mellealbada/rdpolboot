@@ -36,7 +36,7 @@
 
 {p 4 8}{cmd:rdpolboot} estimates bootstrapped confidence intervals around the asymptotic mean squared error (AMSE) of different polynomial orders in a regression discontinuity design. These compare the fit of different polynomial orders and can be used to choose between them if the estimate is senstive to the polynomial order choice.{p_end}
 
-{p 4 8}The package builds upon {cmd:rdbwselect}, the CCT bandwidth selector from Calonico, Cattaneo and Titiunik (2014a, 2014b), to calculate the MSE optimal bandwidth for each polynomial order. Second, it uses {cmd:rdmse} from Pei, Lee, Card and Weber (2021) to estimate the AMSEs for each bootstrapped sample.
+{p 8 8}The package builds upon {cmd:rdbwselect}, the CCT bandwidth selector from Calonico, Cattaneo and Titiunik (2014a, 2014b), to calculate the MSE-optimal bandwidth for each polynomial order. Second, it uses {cmd:rdmse} from Pei, Lee, Card and Weber (2021) to estimate the AMSEs for each bootstrapped sample.
 
 {marker options}{...}
 {title:Options}
@@ -48,13 +48,13 @@ Default is {cmd:c(0)}.{p_end}
 
 {p 4 8}{cmd:fuzzy(}{it:fuzzyvar [sharpbw]}{cmd:)} specifies the treatment status variable used to implement fuzzy RD estimation (or Fuzzy Kink RD if {cmd:deriv(1)} is also specified).
 Default is Sharp RD design and hence this option is not used.
-If the option {it:sharpbw} is set, the fuzzy RD estimation is performed using a bandwidth selection procedure for the sharp RD model. This option is automatically selected if there is perfect compliance at either side of the threshold.
+If the option {it:sharpbw} is set, the fuzzy AMSE estimation is performed using a bandwidth selection procedure for the sharp RD model. This option is automatically selected if there is perfect compliance at either side of the threshold.
 {p_end}
 
 {p 4 8}{cmd:deriv(}{it:#}{cmd:)} specifies the order of the derivative of the regression functions to be estimated.
 Default is {cmd:deriv(0)} (for Sharp RD, or for Fuzzy RD if {cmd:fuzzy(.)} is also specified). Setting {cmd:deriv(1)} results in estimation of a Kink RD design (up to scale), or Fuzzy Kink RD if {cmd:fuzzy(.)} is also specified.{p_end}
 
-{dlgtab:Local Polynomial Regression}
+{dlgtab:Bandwidth Estimation Settings}
 
 {p 4 8}{cmd:minpol(}{it:#}{cmd:)} specifies the lowest polynomial order to consider for estimating bootstrapped confidence intervals.
 Default is {cmd:minpol(1)}{p_end}
@@ -62,9 +62,9 @@ Default is {cmd:minpol(1)}{p_end}
 {p 4 8}{cmd:maxpol(}{it:#}{cmd:)} specifies the highest polynomial order to consider for estimating bootstrapped confidence intervals.
 Default is {cmd:maxpol(4)}{p_end}
 
-{p 4 8}{cmd:covs(}{it:covars}{cmd:)} specifies additional covariates to be used for estimation and inference.{p_end}
+{p 4 8}{cmd:covs(}{it:covars}{cmd:)} specifies additional covariates to be used for estimation.{p_end}
 
-{p 4 8}{cmd:kernel(}{it:kernelfn}{cmd:)} specifies the kernel function used to construct the local-polynomial estimator(s). Options are: {opt tri:angular}, {opt epa:nechnikov}, and {opt uni:form}.
+{p 4 8}{cmd:kernel(}{it:kernelfn}{cmd:)} specifies the kernel function used to estimate the MSE-optimal bandwidth and AMSE. Options are: {opt tri:angular} and {opt uni:form}.
 Default is {cmd:kernel(triangular)}.{p_end}
 
 {p 4 8}{cmd:scaleregul(}{it:#}{cmd:)} specifies scaling factor for the regularization term added to the denominator of the bandwidth selectors. Setting {cmd:scaleregul(0)} removes the regularization term from the bandwidth selectors.
@@ -79,7 +79,7 @@ Default is {cmd:reps(15000)}{p_end}
 
 {dlgtab:Variance-Covariance Estimation}
 
-{p 4 8}{cmd:vce(}{it:vcetype [vceopt1 vceopt2]}{cmd:)} specifies the procedure used to compute the variance-covariance matrix estimator.
+{p 4 8}{cmd:vce(}{it:vcetype [vceopt1 vceopt2]}{cmd:)} specifies the procedure used to compute the variance-covariance matrix estimator for the MSE-optimal bandwidth.
 Options are:{p_end}
 {p 8 12}{cmd:vce(nn }{it:[nnmatch]}{cmd:)} for heteroskedasticity-robust nearest neighbor variance estimator with {it:nnmatch} indicating the minimum number of neighbors to be used.{p_end}
 {p 8 12}{cmd:vce(hc0)} for heteroskedasticity-robust plug-in residuals variance estimator without weights.{p_end}
@@ -96,40 +96,25 @@ Options are:{p_end}
 
 {title:Generic Examples:}
 
-{p 4 8}Let {cmd:Y} be the outcome variable and {cmd:x} the running variable:{p_end}
+{p 4 8}Let {cmd:y} be the outcome variable, {cmd:x} the running variable, and {cmd:t} the treatment instrument:{p_end}
 
-{p 4 8}MSE Estimation for local linear sharp RD estimator with uniform kernel and CCT bandwidths (Calonico, Cattaneo, Titiunik 2014a, 2014b){p_end}
-{p 4 8}First estimate the CCT bandwidths using {cmd:altrdbwselect} included in the package{p_end}
-{p 8 12}{cmd:. altrdbwselect Y x, c(0) deriv(0) p(1) q(2) kernel(uniform) bwselect(CCT)}{p_end}
-{p 8 12}{cmd:. local bw_h=e(h_CCT)}{p_end}
-{p 8 12}{cmd:. local bw_b=e(b_CCT)}{p_end}
-{p 4 8}Then estimate the MSE by passing the CCT bandwidths as arguments{p_end}
-{p 8 12}{cmd:. rdmse Y x, deriv(0) c(0) p(1) h(`bw_h') b(`bw_b') kernel(uniform)}{p_end}
+{p 8 8}Estimation for sharp RD designs with default settings{p_end}
+{p 12 12}{cmd:. rdpolboot y x}{p_end}
 
-{p 4 8}Estimate the MSE of the sharp local linear RD estimator with manual bandwidths{p_end}
-{p 8 12}{cmd:. rdmse Y x, deriv(0) c(0) p(1) h(0.5) b(1.2) kernel(uniform)}{p_end}
+{p 8 8}Estimation for fuzzy RD designs with default settings{p_end}
+{p 12 12}{cmd:. rdpolboot y x, fuzzy(t)}{p_end}
 
-{p 4 8}Estimate the MSE of the sharp local linear RK estimator{p_end}
-{p 8 12}{cmd:. rdmse Y x, deriv(0) c(0) p(1) h(0.5) b(1.2) kernel(uniform)}{p_end}
+{p 8 8}Estimation for sharp RD designs with different min and max polynomials{p_end}
+{p 12 12}{cmd:. rdpolboot y x, minpol(0) maxpol(3)}{p_end}
 
-{p 4 8}Estimate the MSEs of the left- and right- intercept estimators constructed with different polynomial orders and bandwidths on two sides of the threshold{p_end}
-{p 8 12}{cmd:. rdmse Y x, c(0) deriv(0) twosided pl(1) pr(2) hl(0.5) hr(0.45) bl(1.2) br(1.1) kernel(uniform)}{p_end}  
+{p 8 8}Estimation for sharp RD designs without the acceleration factor for large data sets{p_end}
+{p 12 12}{cmd:. rdpolboot y x, accel_off}{p_end}
 
-{p 4 8}Let {cmd:T} be the treatment variable.{p_end}
+{p 8 8}Estimation for sharp RD designs with the BCa CI plot{p_end}
+{p 12 12}{cmd:. rdpolboot y x, plot}{p_end}
 
-{p 4 8}MSE Estimation for local linear fuzzy RD estimator with uniform kernel and "fuzzy CCT" bandwidths (Card, Lee, Pei, Weber 2015){p_end}
-{p 4 8}First estimate the fuzzy CCT bandwidths using {cmd:altfrdbwselect} included in the package{p_end}
-{p 8 12}{cmd:. altfrdbwselect Y x, c(0) fuzzy(T) deriv(0) p(1) q(2) kernel(uniform) bwselect(CCT)}{p_end}
-{p 8 12}{cmd:. local fbw_h=e(h_F_CCT)}{p_end}
-{p 8 12}{cmd:. local fbw_b=e(b_F_CCT)}{p_end}
-{p 4 8}Then estimate the MSE by passing the "fuzzy CCT" bandwidths as arguments{p_end}
-{p 8 12}{cmd:. rdmse Y x, c(0) fuzzy(T) deriv(0) p(1) h(`fbw_h') b(`fbw_b') kernel(uniform)}{p_end}
-
-{p 4 8}Estimate the MSE of the fuzzy local linear RD estimator with manual bandwidths{p_end}
-{p 8 12}{cmd:. rdmse Y x, c(0) fuzzy(T) deriv(0) p(1) h(0.5) b(1.2) kernel(uniform)}{p_end}
-
-{p 4 8}Estimate the MSE of the fuzzy local linear RK estimator{p_end}
-{p 8 12}{cmd:. rdmse Y x, c(0) fuzzy(T) deriv(1) p(1) h(0.5) b(1.2) kernel(uniform)}{p_end}
+{p 8 8}Estimation for sharp RD designs with covariates and a cluster variable{p_end}
+{p 12 12}{cmd:. rdpolboot y x, covs({it:covars}) vce(cluster {it:clustervar}}{p_end}
 
 {marker stored_results}{...}
 {title:Stored Results}

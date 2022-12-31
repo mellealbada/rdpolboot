@@ -19,7 +19,7 @@ program define rdmse_full, eclass
 			rdbwselect `y' `x', p(`pol') covs(`covs') vce(`vce') c(`c') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
-			rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c')
+			rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') kernel(`kernel')
 			scalar amse`pol' = e(amse_cl)
 			* if e(amse_cl)==. scalar amse`pol'=0
 		}
@@ -30,7 +30,7 @@ program define rdmse_full, eclass
 			rdbwselect `y' `x', p(`pol') covs(`covs') vce(`vce') c(`c') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 			local hbw = e(h_mserd)
 			local bbw = e(b_mserd)
-			rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') fuzzy(`fuzzy')
+			rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') fuzzy(`fuzzy') kernel(`kernel')
 			scalar amse`pol' = e(amse_F_cl)
 			* if e(amse_F_cl)==. scalar amse`pol'=0
 		}

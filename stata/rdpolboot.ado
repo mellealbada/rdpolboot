@@ -14,17 +14,19 @@ program define rdpolboot, eclass
 	qui count
 	local N = r(N)
 	
+	if `kernel'=="" local kernel "triangular"
+	
 	lowestamsepol `y' `x', minpol(`minpol') maxpol(`maxpol') covs(`covs') vce(`vce') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 	local elist = e(elist)
 	local lowestpol = e(lowest_pol)
 	
 	if "`accel_off'" == "" {
-		bootstrap `elist', notable noheader nolegend nowarn reps(`reps') bca jackknifeopts(n(e(N))): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol') fuzzy(`fuzzy') covs(`covs') vce(`vce') scaleregul(`scaleregul') deriv(`deriv')
+		bootstrap `elist', notable noheader nolegend nowarn reps(`reps') bca jackknifeopts(n(e(N))): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol') fuzzy(`fuzzy') covs(`covs') vce(`vce') scaleregul(`scaleregul') deriv(`deriv') kernel(`kernel')
 		estat bootstrap, bca
 		matrix upperbound = e(ci_bca)
 	}
 	else if "`accel_off'" != "" {
-		bootstrap `elist', notable noheader nolegend nowarn reps(`reps'): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol') fuzzy(`fuzzy') covs(`covs') vce(`vce') scaleregul(`scaleregul') deriv(`deriv')		
+		bootstrap `elist', notable noheader nolegend nowarn reps(`reps'): rdmse_full `y' `x', minpol(`minpol') maxpol(`maxpol') lowestpol(`lowestpol') fuzzy(`fuzzy') covs(`covs') vce(`vce') scaleregul(`scaleregul') deriv(`deriv') kernel(`kernel')	
 		estat bootstrap
 		matrix upperbound = e(ci_bc)
 	}
