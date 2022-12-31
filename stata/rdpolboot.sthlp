@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.0 10JAN2023}{...}
+{* *! version 1.0 01JAN2023}{...}
 {viewerjumpto "Syntax" "rdpolboot##syntax"}{...}
 {viewerjumpto "Description" "rdpolboot##description"}{...}
 {viewerjumpto "Options" "rdpolboot##options"}{...}
@@ -26,11 +26,17 @@
 {cmd:deriv(}{it:#}{cmd:)}
 {cmd:covs(}{it:covars}{cmd:)}
 {cmd:kernel(}{it:kernelfn}{cmd:)}
-{cmd:bwselect(}{it:bwmethod}{cmd:)}
 {cmd:scaleregul(}{it:#}{cmd:)}
 {cmd:vce(}{it:vcetype [vceopt1 vceopt2]}{cmd:)}]
 
 {synoptset 28 tabbed}{...}
+
+{marker description}{...}
+{title:Description}
+
+{p 4 8}{cmd:rdpolboot} estimates bootstrapped confidence intervals around the asymptotic mean squared error (AMSE) of different polynomial orders in a regression discontinuity design. These compare the fit of different polynomial orders and can be used to choose between them if the estimate is senstive to the polynomial order choice.{p_end}
+
+{p 4 8}The package builds upon {cmd:rdbwselect}, the CCT bandwidth selector from Calonico, Cattaneo and Titiunik (2014a, 2014b), to calculate the MSE optimal bandwidth for each polynomial order. Second, it uses {cmd:rdmse} from Pei, Lee, Card and Weber (2021) to estimate the AMSEs for each bootstrapped sample.
 
 {marker options}{...}
 {title:Options}
@@ -154,20 +160,8 @@ Options are:{p_end}
 {p 4 8}Calonico, S., M. D. Cattaneo, and R. Titiunik. 2014b. Robust Data Driven Inference in the Regression Discontinuity Design. {it:Stata Journal} 14(4): 909-946. 
 {browse "https://journals.sagepub.com/doi/abs/10.1177/1536867X1401400413"}.
 
-{p 4 8}Card, D., D. S. Lee, Z. Pei, and A. Weber. 2015. Inference on Causal Effects in a Generalized Regression Kink Design. {it:Econometrica} 83(6): 2453-2483.
-{browse "https://onlinelibrary.wiley.com/doi/abs/10.3982/ECTA11224"}.
-
-{p 4 8}Calonico, S., M. D. Cattaneo, M. H. Farrell, and R. Titiunik. 2017. {cmd:rdrobust}: Software for Regression-Discontinuity Designs. {it:Stata Journal} 17(2): 372-404. 
-{browse "https://journals.sagepub.com/doi/abs/10.1177/1536867X1701700208"}.
-
-{p 4 8}Card, D., D. S. Lee, Z. Pei, and A. Weber. 2018. Princeton University Industrial Relations Section Working Paper #622.
-{browse "https://irs.princeton.edu/publications/working-papers/local-polynomial-order-regression-discontinuity-designs"}.
-
-{p 4 8}Calonico, S., M. D. Cattaneo, M. H. Farrell, and R. Titiunik. 2019. Regression Discontinuity Designs Using Covariates. {it:Review of Economics and Statistics} 101(3): 442-451.
-{browse "https://www.mitpressjournals.org/doi/abs/10.1162/rest_a_00760"}.
-
-{p 4 8}Card, D., D. S. Lee, Z. Pei, and A. Weber. 2020. NBER Working Paper #622.
-{browse "https://www.nber.org/papers/w27424"}.
+{p 4 8}Pei, Z., Lee, D. S., Card, D., and Weber, A. 2021. Local Polynomial Order in Regression Discontinuity Designs. {it:Journal of Business and Economic Statistics}: 1259-1267.
+{browse "https://www.tandfonline.com/doi/full/10.1080/07350015.2021.1920961"}.
 
 {marker author}{...}
 {title:Author}
