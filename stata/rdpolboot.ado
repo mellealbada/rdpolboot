@@ -14,7 +14,7 @@ program define rdpolboot, eclass
 	qui count
 	local N = r(N)
 	
-	if `kernel'=="" local kernel "triangular"
+	if "`kernel'"=="" local kernel "triangular"
 	
 	lowestamsepol `y' `x', minpol(`minpol') maxpol(`maxpol') covs(`covs') vce(`vce') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
 	local elist = e(elist)
