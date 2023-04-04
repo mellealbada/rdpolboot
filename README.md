@@ -14,5 +14,5 @@ To install/update in R using GitHub type:
 
 ```
 # install.packages("devtools")
-devtools::install_github("mralbada/rdpolboot")
+devtools::install_github("mralbada/rdpolboot/R")
 ```
