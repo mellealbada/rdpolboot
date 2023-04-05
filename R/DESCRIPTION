@@ -1,7 +1,7 @@
 Package: rdpolboot
 Type: Package
 Title: Estimation of Bootstrapped Confidence Intervals of the Asymptotic Mean Squared Error for Regression Disconinuity Designs.
-Version: 0.1.0
+Version: 1.0.0
 Date: 2023-03-28
 Author: Melle Albada
 Maintainer: Melle Albada <melle.albada@wu.ac.at>
