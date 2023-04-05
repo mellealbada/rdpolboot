@@ -1,0 +1,3 @@
+v 2.0
+d Melle Albada, Vienna University of Economics and Business
+p rdpolboot Bootstrapped CIs for the AMSE

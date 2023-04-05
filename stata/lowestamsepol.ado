@@ -1,6 +1,6 @@
 capture program drop lowestamsepol
 program define lowestamsepol, eclass
-	syntax anything [, c(real 0) fuzzy(string) covs(string) vce(string) kernel(string) scaleregul(real 1) deriv(real 0)] minpol(real) maxpol(real)
+	syntax anything [, mainpol(real -1) c(real 0) fuzzy(string) covs(string) vce(string) kernel(string) scaleregul(real 1) deriv(real 0)] minpol(real) maxpol(real)
 	tokenize "`anything'"
 	
 	local y `1'
@@ -8,67 +8,47 @@ program define lowestamsepol, eclass
 	
 	scalar lowestamse = .
 	scalar lowestpol = .
-	
-	if "`fuzzy'"=="" {
-		forvalues pol = `minpol'/`maxpol' {
-			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
-			local hbw = e(h_mserd)
-			local bbw = e(b_mserd)
-			qui rdmses `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') kernel(`kernel')
+
+	forvalues pol = `minpol'/`maxpol' {
 		
-			scalar amse_p`pol' = e(amse_cl)
-			di "AMSE for polynomial order `pol' is " amse_p`pol'
-			
-			if `pol'==`minpol' {
-				matrix amses = `pol', e(amse_cl)
-			}
-			else matrix amses = amses \ `pol', e(amse_cl)
+		qui rdrobust `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') kernel(`kernel') fuzzy(`fuzzy') scaleregul(`scaleregul') deriv(`deriv')
+		scalar amse_p`pol' = (e(tau_cl)-e(tau_bc))^2 + e(se_tau_cl)^2
 		
-			if e(amse_cl) < lowestamse {
-				scalar lowestamse = e(amse_cl)
-				scalar lowestpol = `pol'
-			}
+		di "AMSE for polynomial order `pol' is " amse_p`pol'
+		
+		if `pol'==`minpol' {
+			matrix amses = `pol', amse_p`pol'
 		}
-	}
+		else matrix amses = amses \ `pol', amse_p`pol'
 	
-	if "`fuzzy'"!="" {
-		forvalues pol = `minpol'/`maxpol' {
-			qui rdbwselect `y' `x', p(`pol') c(`c') covs(`covs') vce(`vce') fuzzy(`fuzzy') kernel(`kernel') scaleregul(`scaleregul') deriv(`deriv')
-			local hbw = e(h_mserd)
-			local bbw = e(b_mserd)
-			qui rdmsef `y' `x', h(`hbw') b(`bbw') p(`pol') c(`c') fuzzy(`fuzzy') kernel(`kernel')
-		
-			scalar amse_p`pol' = e(amse_F_cl)
-			di "AMSE for polynomial order `pol' is " amse_p`pol'
-			
-			if `pol'==`minpol' {
-				matrix amses = `pol', e(amse_F_cl)
-			}
-			else matrix amses = amses \ `pol', e(amse_F_cl)
-		
-			if e(amse_F_cl) < lowestamse {
-				scalar lowestamse = e(amse_F_cl)
-				scalar lowestpol = `pol'
-			}
+		if amse_p`pol' < lowestamse {
+			scalar lowestamse = amse_p`pol'
+			scalar lowestpol = `pol'
+
 		}
 	}
 	
 	matrix colnames amses = polynomial amse
+	
+	if `mainpol'==-1 local mainpol = lowestpol
+	local scalarlist
+	local namelist
+
+	forvalues pol = `minpol'/`maxpol' {
+		if `pol' != `mainpol' {
+			local scalarlist `scalarlist' (amse`mainpol'`pol')
+			local namelist `namelist' amse`mainpol'`pol' 
+		}
+	}
 
 	ereturn clear
 	
 	ereturn scalar lowest_amse = lowestamse
 	ereturn scalar lowest_pol = lowestpol
+	ereturn scalar mainpol = `mainpol'
 	
-	local lowestpol = lowestpol
-	local elist // initialize elist
-
-	forvalues pol = `minpol'/`maxpol' {
-		if `pol' != `lowestpol' {
-			local elist `elist' e(amse`lowestpol'`pol') // add scalar to elist
-		}
-	}
-
-	ereturn local elist "`elist'"
+	ereturn local scalarlist "`scalarlist'"
+	ereturn local namelist "`namelist'"
 
 end
+

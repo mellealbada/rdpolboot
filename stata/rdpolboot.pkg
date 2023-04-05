@@ -1,12 +1,19 @@
-v 1.0
-d Date: 14.12.2022
+v 2.0
+d Date: 03.04.2023
 d rdpolboot Bootstrapped CIs for the AMSE
 d Melle Albada, Vienna University of Economics and Business
 f rdpolboot.ado
 f rdpolboot.sthlp
 f rdpolbootplot.ado
 f lowestamsepol.ado
-f rdbwselect.ado
-f rdmses.ado
-f rdmse_full.ado
-f rdmsef.ado
+d --------------------------------------------
+d rdrobust functions version 9.1.0  2022-10-28
+d --------------------------------------------
+f rdrobust.ado
+f rdrobust_bw.mo
+f rdrobust_kweight.mo
+f rdrobust_res.mo
+f rdrobust_vce.mo
+f rdrobust_collapse.mo
+f rdrobust_median.mo
+f rdrobust_groupid.mo
