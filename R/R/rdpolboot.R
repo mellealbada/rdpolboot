@@ -6,11 +6,16 @@
 #' 
 #' @usage 
 #' rdpolboot(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri", deriv = NULL, 
-#' cluster = NULL, scaleregul = 1, plot = TRUE, groups = NULL, groupreps = 5, 
+#' cluster = NULL, scaleregul = 1, groups = NULL, groupreps = 5, 
 #' minpol = 1, maxpol = 4, reps = 15000, alpha = 0.05)
 #' 
-#' @param y a vector of the dependent variable
-#' @param x a vector of the running variable (a.k.a. score or forcing variable)
+#' @import rdrobust
+#' @import dplyr
+#' @import ggplot2
+#' @import magrittr
+#' 
+#' @param y a vector of the dependent variable.
+#' @param x a vector of the running variable (a.k.a. score or forcing variable).
 #' @param c specifies the RD cutoff in x; default is \code{c = 0}.
 #' @param fuzzy specifies the treatment status variable used to implement fuzzy RD estimation (or Fuzzy Kink RD if \code{deriv = 1} is also specified). Default is Sharp RD design and hence this option is not used.
 #' @param covs specifies additional covariates to be used for estimation and inference.
@@ -18,7 +23,6 @@
 #' @param deriv specifies the order of the derivative of the regression functions to be estimated. Default is \code{deriv = 0} (for Sharp RD, or for Fuzzy RD if fuzzy is also specified). Setting \code{deriv = 1} results in estimation of a Kink RD design (up to scale), or Fuzzy Kink RD if fuzzy is also specified.
 #' @param cluster indicates the cluster ID variable used for cluster-robust variance estimation with degrees-of-freedom weights.
 #' @param scaleregul specifies scaling factor for the regularization term added to the denominator of the bandwidth selectors. Setting \code{scaleregul = 0} removes the regularization term from the bandwidth selectors.  Default is \code{scaleregul = 1}.
-#' @param plot if \code{TRUE}, the function produces a plot of the bootstrapped confidence intervals; default is \code{plot = TRUE}.
 #' @param groups specifies the number groups the data is to be randomly split in. This option speeds up the jackknife calculations for estimating the acceleration value in case the data set is very large. Note that it does not have to exactly divide the total number of observations. Be careful not to choose a very large number of groups, as too small group sizes can crash calculation of the AMSE. Default is \code{groups = NULL}, and hence this option is not used.
 #' @param groupreps specifies the number of repetitions for the jackknife procedure; default is \code{groupreps = 1}. If \code{groups} is specified, it is recommended to increase \code{groupreps} for a more reliable approximation of the acceleration factor.
 #' @param minpol specifies the lowest polynomial order to consider for estimating bootstrapped confidence intervals; default is \code{minpol = 1}.
@@ -28,41 +32,39 @@
 #' 
 #' @returns
 #' \item{N}{total number of observations}
-#' \item{minpol}{lowest polynomial order considered for estimating bootstrapped confidence intervals}
-#' \item{maxpol}{highest polynomial order considered for estimating bootstrapped confidence intervals}
-#' \item{mainpol}{main polynomial order (the one with the lowest AMSE if not specified)}
-#' \item{missings_bs}{number of unsuccessful bootstrap iterations}
-#' \item{missings_jk}{number of unsuccessful jackknife iterations}
-#' \item{amses}{AMSE value corresponding to each polynomial order}
-#' \item{bca_ci}{BCa confidence intervals for each polynomial order pair}
-#' \item{included}{list of the main polynomial orders and all overlapping polynomial orders}
-#' \item{plot}{plot of the BCa confidence intervals}
+#' \item{minpol}{lowest polynomial order considered for estimating bootstrapped confidence intervals.}
+#' \item{maxpol}{highest polynomial order considered for estimating bootstrapped confidence intervals.}
+#' \item{mainpol}{main polynomial order (the one with the lowest AMSE if not specified).}
+#' \item{missings_bs}{number of unsuccessful bootstrap iterations.}
+#' \item{missings_jk}{number of unsuccessful jackknife iterations.}
+#' \item{amses}{AMSE value corresponding to each polynomial order.}
+#' \item{bca_ci}{BCa confidence intervals for each polynomial order pair.}
+#' \item{included}{list of the main polynomial order and all polynomial orders whose fit is indistinguishable.}
+#' \item{plot}{plot of the BCa confidence intervals.}
 #' 
 #' @examples 
 #' # Let y be the outcome variable, x the running variable, and t the treatment instrument:
 #' 
 #' # Estimation for sharp RD designs with default settings
-#' rdpolboot(df$y, df$x)
+#' out <- rdpolboot(y, x)
 #' 
 #' # Estimation for fuzzy RD designs with default settings
-#' rdpolboot(df$y, df$x, fuzzy = df$t)
+#' out <- rdpolboot(y, x, fuzzy = t)
 #' 
-#' # Estimation for sharp RD designs using groups and groupreps to speed up estimation of the acceleration factor for large data sets
-#' rdpolboot(df$y, df$x, groups = 5, groupreps = 40)
+#' # Estimation for sharp RD designs using groups and groupreps to speed up estimation
+#' # of the acceleration factor for large data sets
+#' out <- rdpolboot(y, x, groups = 5, groupreps = 40)
 #' 
 #' # Estimation for sharp RD designs with different min and max polynomials
-#' rdpolboot(df$y, df$x, minpol = 0, maxpol = 3)
-#' 
-#' # Estimation for sharp RD designs without the BCa CI plot
-#' rdpolboot(df$y, df$x, plot = FALSE)
+#' out <- rdpolboot(y, x, minpol = 0, maxpol = 3)
 #' 
 #' # Estimation for sharp RD designs with covariates and a cluster variable
-#' rdpolboot(df$y, df$x, covs = covars, cluster = clustervar)
+#' out <- rdpolboot(y, x, covs = covars, cluster = clustervar)
 #' 
 #' @export
 rdpolboot <- function(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri", 
                       deriv = NULL, cluster = NULL, scaleregul = 1, alpha = 0.05, mainpol = NULL,
-                      plot = TRUE, groups = NULL, groupreps = 1, minpol = 1, maxpol = 4, reps = 15000){
+                      groups = NULL, groupreps = 1, minpol = 1, maxpol = 4, reps = 15000){
   
   if (!is.null(covs)) covs <- as.matrix(covs)
   
@@ -71,7 +73,7 @@ rdpolboot <- function(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri",
   
   counter <- 1
   for (pol in minpol:maxpol) {
-    out <- rdrobust(y=y, x=x, p=pol, c=c, fuzzy=fuzzy, covs=covs, kernel=kernel, 
+    out <- rdrobust::rdrobust(y=y, x=x, p=pol, c=c, fuzzy=fuzzy, covs=covs, kernel=kernel, 
                     deriv=deriv, cluster=cluster, scaleregul=scaleregul, masspoints="off")
     amses$amse[counter] <- (out$Estimate[1,1]-out$Estimate[1,2])^2 + out$se[1]^2
     
@@ -97,7 +99,7 @@ rdpolboot <- function(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri",
     if (!is.null(covs)) covs_bs <- covs[bs_ids,] else covs_bs <- NULL
     
     for (pol in minpol:maxpol) {
-      out <- try(rdrobust(y_bs, x_bs, p=pol, c=c, fuzzy=fuzzy_bs, covs=covs_bs, kernel=kernel, 
+      out <- try(rdrobust::rdrobust(y_bs, x_bs, p=pol, c=c, fuzzy=fuzzy_bs, covs=covs_bs, kernel=kernel, 
                           deriv=deriv, cluster=cluster_bs, scaleregul=scaleregul, masspoints="off"))
       if ("try-error" %in% class(out)) amses_bs$amse[counter] <- NA
       else amses_bs$amse[counter] <- (out$Estimate[1,1]-out$Estimate[1,2])^2 + out$se[1]^2
@@ -139,7 +141,7 @@ rdpolboot <- function(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri",
         if (!is.null(covs)) covs_jk <- covs[jk_groups!=jack,] else covs_jk <- NULL
         
         for (pol in minpol:maxpol) {
-          out <- try(rdrobust(y_jk, x_jk, p=pol, c=c, fuzzy=fuzzy_jk, covs=covs_jk, kernel=kernel, 
+          out <- try(rdrobust::rdrobust(y_jk, x_jk, p=pol, c=c, fuzzy=fuzzy_jk, covs=covs_jk, kernel=kernel, 
                               deriv=deriv, cluster=cluster_jk, scaleregul=scaleregul, masspoints="off"))
           if ("try-error" %in% class(out)) amses_jk$amse[counter] <- NA
           else amses_jk$amse[counter] <- (out$Estimate[1,1]-out$Estimate[1,2])^2 + out$se[1]^2
@@ -161,7 +163,7 @@ rdpolboot <- function(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri",
         if (!is.null(covs)) covs_jk <- covs[jk_ids,][jk_groups==jack,] else covs_jk <- NULL
         
         for (pol in minpol:maxpol) {
-          out <- try(rdrobust(y_jk, x_jk, p=pol, c=c, fuzzy=fuzzy_jk, covs=covs_jk, kernel=kernel, 
+          out <- try(rdrobust::rdrobust(y_jk, x_jk, p=pol, c=c, fuzzy=fuzzy_jk, covs=covs_jk, kernel=kernel, 
                               deriv=deriv, cluster=cluster_jk, scaleregul=scaleregul, masspoints="off"))
           if ("try-error" %in% class(out)) amses_jk$amse[counter] <- NA
           else amses_jk$amse[counter] <- (out$Estimate[1,1]-out$Estimate[1,2])^2 + out$se[1]^2
@@ -219,21 +221,19 @@ rdpolboot <- function(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri",
   output$pol <- amses$pol
   included <- output$pol[output$overlap==1]
   
-  if (plot==TRUE){
-    ci_plot <- output %>% ggplot() +
-      geom_errorbar(aes(x=as.factor(polpair), ymin=lower, ymax=upper), width=0.3) +
-      geom_point(aes(x=as.factor(polpair), y=diff, col=as.factor(overlap)), size=3) +
-      geom_hline(yintercept = 0) +
-      coord_flip() +
-      theme_bw() +
-      labs(y = "AMSE Difference",
-           x = "Difference Pair") +
-      theme(legend.position = "none",
-            text=element_text(size=17)) +
-      scale_color_manual(values = c("FALSE"="black", "TRUE"="red")) +
-      scale_y_continuous(labels = ~ format(.x, scientific = FALSE))
-  }
+  ci_plot <- output %>% ggplot2::ggplot() +
+    geom_errorbar(aes(x=as.factor(polpair), ymin=lower, ymax=upper), width=0.3) +
+    geom_point(aes(x=as.factor(polpair), y=diff, col=as.factor(overlap)), size=3) +
+    geom_hline(yintercept = 0) +
+    coord_flip() +
+    theme_bw() +
+    labs(y = "AMSE Difference",
+         x = "Difference Pair") +
+    theme(legend.position = "none",
+          text=element_text(size=17)) +
+    scale_color_manual(values = c("FALSE"="black", "TRUE"="red")) +
+    scale_y_continuous(labels = ~ format(.x, scientific = FALSE))
   
-  out <- list(N=length(y), minpol=minpol, maxpol=maxpol, mainpol=mainpol, amses=amses_orig, missings_bs=missings_bs, missings_jk=missings_jk, included=included, bca_ci=output, plot=ci_plot)
+  out <- list(N=length(y), minpol=minpol, maxpol=maxpol, mainpol=mainpol, amses=amses_orig, missings_bs=missings_bs, missings_jk=missings_jk, included=included, bca_ci=output[,c(1:4)], plot=ci_plot)
   return(out)
 }
