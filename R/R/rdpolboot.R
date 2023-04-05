@@ -7,7 +7,7 @@
 #' @usage 
 #' rdpolboot(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri", deriv = NULL, 
 #' cluster = NULL, scaleregul = 1, groups = NULL, groupreps = 5, 
-#' minpol = 1, maxpol = 4, reps = 15000, alpha = 0.05)
+#' mainpol = NULL, minpol = 1, maxpol = 4, reps = 15000, alpha = 0.05)
 #' 
 #' @import rdrobust
 #' @import dplyr
@@ -25,6 +25,7 @@
 #' @param scaleregul specifies scaling factor for the regularization term added to the denominator of the bandwidth selectors. Setting \code{scaleregul = 0} removes the regularization term from the bandwidth selectors.  Default is \code{scaleregul = 1}.
 #' @param groups specifies the number groups the data is to be randomly split in. This option speeds up the jackknife calculations for estimating the acceleration value in case the data set is very large. Note that it does not have to exactly divide the total number of observations. Be careful not to choose a very large number of groups, as too small group sizes can crash calculation of the AMSE. Default is \code{groups = NULL}, and hence this option is not used.
 #' @param groupreps specifies the number of repetitions for the jackknife procedure; default is \code{groupreps = 1}. If \code{groups} is specified, it is recommended to increase \code{groupreps} for a more reliable approximation of the acceleration factor.
+#' @param mainpol specifies the main polynomial order to consider for robustness testing. If not specified, the polynomial order with the lowest AMSE is used as the main polynomial order; default is \code{mainpol = NULL}, and hence this option is not used.
 #' @param minpol specifies the lowest polynomial order to consider for estimating bootstrapped confidence intervals; default is \code{minpol = 1}.
 #' @param maxpol specifies the highest polynomial order to consider for estimating bootstrapped confidence intervals; default is \code{maxpol = 4}.
 #' @param reps specifies the number of bootstrap repetitions; default is \code{reps = 15000}.
