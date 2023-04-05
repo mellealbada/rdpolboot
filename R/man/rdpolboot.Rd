@@ -5,13 +5,13 @@
 \title{rdpolboot}
 \usage{
 rdpolboot(y, x, c = 0, fuzzy = NULL, covs = NULL, kernel = "tri", deriv = NULL, 
-cluster = NULL, scaleregul = 1, plot = TRUE, groups = NULL, groupreps = 5, 
+cluster = NULL, scaleregul = 1, groups = NULL, groupreps = 5, 
 minpol = 1, maxpol = 4, reps = 15000, alpha = 0.05)
 }
 \arguments{
-\item{y}{a vector of the dependent variable}
+\item{y}{a vector of the dependent variable.}
 
-\item{x}{a vector of the running variable (a.k.a. score or forcing variable)}
+\item{x}{a vector of the running variable (a.k.a. score or forcing variable).}
 
 \item{c}{specifies the RD cutoff in x; default is \code{c = 0}.}
 
@@ -29,8 +29,6 @@ minpol = 1, maxpol = 4, reps = 15000, alpha = 0.05)
 
 \item{alpha}{specifies the percentage level of the BCa confidence interval; default is \code{alpha = 0.05}, yielding a 95\% confidence interval.}
 
-\item{plot}{if \code{TRUE}, the function produces a plot of the bootstrapped confidence intervals; default is \code{plot = TRUE}.}
-
 \item{groups}{specifies the number groups the data is to be randomly split in. This option speeds up the jackknife calculations for estimating the acceleration value in case the data set is very large. Note that it does not have to exactly divide the total number of observations. Be careful not to choose a very large number of groups, as too small group sizes can crash calculation of the AMSE. Default is \code{groups = NULL}, and hence this option is not used.}
 
 \item{groupreps}{specifies the number of repetitions for the jackknife procedure; default is \code{groupreps = 1}. If \code{groups} is specified, it is recommended to increase \code{groupreps} for a more reliable approximation of the acceleration factor.}
@@ -43,15 +41,15 @@ minpol = 1, maxpol = 4, reps = 15000, alpha = 0.05)
 }
 \value{
 \item{N}{total number of observations}
-\item{minpol}{lowest polynomial order considered for estimating bootstrapped confidence intervals}
-\item{maxpol}{highest polynomial order considered for estimating bootstrapped confidence intervals}
-\item{mainpol}{main polynomial order (the one with the lowest AMSE if not specified)}
-\item{missings_bs}{number of unsuccessful bootstrap iterations}
-\item{missings_jk}{number of unsuccessful jackknife iterations}
-\item{amses}{AMSE value corresponding to each polynomial order}
-\item{bca_ci}{BCa confidence intervals for each polynomial order pair}
-\item{included}{list of the main polynomial orders and all overlapping polynomial orders}
-\item{plot}{plot of the BCa confidence intervals}
+\item{minpol}{lowest polynomial order considered for estimating bootstrapped confidence intervals.}
+\item{maxpol}{highest polynomial order considered for estimating bootstrapped confidence intervals.}
+\item{mainpol}{main polynomial order (the one with the lowest AMSE if not specified).}
+\item{missings_bs}{number of unsuccessful bootstrap iterations.}
+\item{missings_jk}{number of unsuccessful jackknife iterations.}
+\item{amses}{AMSE value corresponding to each polynomial order.}
+\item{bca_ci}{BCa confidence intervals for each polynomial order pair.}
+\item{included}{list of the main polynomial order and all polynomial orders whose fit is indistinguishable.}
+\item{plot}{plot of the BCa confidence intervals.}
 }
 \description{
 rdpolboot estimates bootstrapped confidence intervals around the asymptotic mean squared error (AMSE) of different polynomial orders in a regression discontinuity design. These compare the fit of different polynomial orders and can be used to choose between them if the estimate is sensitive to the polynomial order choice.
@@ -61,21 +59,19 @@ The package builds upon rdbwselect, the CCT bandwidth selector from Calonico, Ca
 # Let y be the outcome variable, x the running variable, and t the treatment instrument:
 
 # Estimation for sharp RD designs with default settings
-rdpolboot(df$y, df$x)
+out <- rdpolboot(y, x)
 
 # Estimation for fuzzy RD designs with default settings
-rdpolboot(df$y, df$x, fuzzy = df$t)
+out <- rdpolboot(y, x, fuzzy = t)
 
-# Estimation for sharp RD designs using groups and groupreps to speed up estimation of the acceleration factor for large data sets
-rdpolboot(df$y, df$x, groups = 5, groupreps = 40)
+# Estimation for sharp RD designs using groups and groupreps to speed up estimation
+# of the acceleration factor for large data sets
+out <- rdpolboot(y, x, groups = 5, groupreps = 40)
 
 # Estimation for sharp RD designs with different min and max polynomials
-rdpolboot(df$y, df$x, minpol = 0, maxpol = 3)
-
-# Estimation for sharp RD designs without the BCa CI plot
-rdpolboot(df$y, df$x, plot = FALSE)
+out <- rdpolboot(y, x, minpol = 0, maxpol = 3)
 
 # Estimation for sharp RD designs with covariates and a cluster variable
-rdpolboot(df$y, df$x, covs = covars, cluster = clustervar)
+out <- rdpolboot(y, x, covs = covars, cluster = clustervar)
 
 }
