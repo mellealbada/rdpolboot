@@ -8,11 +8,14 @@ Maintainer: Melle Albada <melle.albada@wu.ac.at>
 Description: This package estimates bootstrapped confidence intervals around the asymptotic
         mean squared error (AMSE) of different polynomial orders in a regression
         discontinuity design. These compare the fit of different polynomial
-        orders and can be used to choose between them if the estimate is
-        senstive to the polynomial order choice.
+        orders and can be used to determine which polynomial orders to use in robustness testing.
 Encoding: UTF-8
 URL: https://github.com/mralbada/rdpolboot
 BugReports: https://github.com/mralbada/rdpolboot/issues
 RoxygenNote: 7.2.3
 Imports: 
-    rdrobust
+  rdrobust,
+  dplyr,
+  ggplot2,
+  magrittr
+License: GPL (>= 3)
