@@ -6,7 +6,7 @@ The ```rdpolboot``` function calculates bootstrapped confidence intervals around
 To install/update in Stata type:
 
 ```
-net install rdpolboot, from(https://raw.githubusercontent.com/mralbada/rdpolboot/main/stata) replace
+net install rdpolboot, from(https://raw.githubusercontent.com/mellealbada/rdpolboot/main/stata) replace
 ```
 
 ### R Implementation
@@ -14,5 +14,5 @@ To install/update in R using GitHub type:
 
 ```
 # install.packages("devtools")
-devtools::install_github("mralbada/rdpolboot/R")
+devtools::install_github("mellealbada/rdpolboot/R")
 ```
